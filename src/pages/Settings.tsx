@@ -4,7 +4,6 @@ import {
   User, 
   Shield, 
   Bell, 
-  Smartphone,
   Key,
   Wallet,
   Save
@@ -52,8 +51,9 @@ export function Settings() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
+              <label htmlFor="profile-name" className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
               <input
+                id="profile-name"
                 type="text"
                 value={profile.name}
                 onChange={(e) => setProfile({...profile, name: e.target.value})}
@@ -62,8 +62,9 @@ export function Settings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+              <label htmlFor="profile-email" className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
               <input
+                id="profile-email"
                 type="email"
                 value={profile.email}
                 onChange={(e) => setProfile({...profile, email: e.target.value})}
@@ -72,8 +73,9 @@ export function Settings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
+              <label htmlFor="profile-phone" className="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
               <input
+                id="profile-phone"
                 type="tel"
                 value={profile.phone}
                 onChange={(e) => setProfile({...profile, phone: e.target.value})}
@@ -82,8 +84,9 @@ export function Settings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Timezone</label>
+              <label htmlFor="profile-timezone" className="block text-sm font-medium text-gray-300 mb-2">Timezone</label>
               <select
+                id="profile-timezone"
                 value={profile.timezone}
                 onChange={(e) => setProfile({...profile, timezone: e.target.value})}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-yellow-500 focus:outline-none"
@@ -108,8 +111,9 @@ export function Settings() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Trading Platform</label>
+              <label htmlFor="broker-platform" className="block text-sm font-medium text-gray-300 mb-2">Trading Platform</label>
               <select
+                id="broker-platform"
                 value={brokerCredentials.platform}
                 onChange={(e) => setBrokerCredentials({...brokerCredentials, platform: e.target.value})}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-yellow-500 focus:outline-none"
@@ -120,8 +124,9 @@ export function Settings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Server</label>
+              <label htmlFor="broker-server" className="block text-sm font-medium text-gray-300 mb-2">Server</label>
               <input
+                id="broker-server"
                 type="text"
                 placeholder="e.g., broker-server.com:443"
                 value={brokerCredentials.server}
@@ -131,8 +136,9 @@ export function Settings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Login ID</label>
+              <label htmlFor="broker-login" className="block text-sm font-medium text-gray-300 mb-2">Login ID</label>
               <input
+                id="broker-login"
                 type="text"
                 placeholder="Your MT4/5 login number"
                 value={brokerCredentials.login}
@@ -142,8 +148,9 @@ export function Settings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+              <label htmlFor="broker-password" className="block text-sm font-medium text-gray-300 mb-2">Password</label>
               <input
+                id="broker-password"
                 type="password"
                 placeholder="Your MT4/5 password"
                 value={brokerCredentials.password}
@@ -180,16 +187,18 @@ export function Settings() {
                 priceAlerts: 'Price Alerts'
               };
 
+              const inputId = `notification-${key}`;
               return (
-                <label key={key} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg cursor-pointer">
-                  <span className="text-gray-300">{labels[key]}</span>
+                <div key={key} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                  <label htmlFor={inputId} className="text-gray-300 cursor-pointer flex-grow">{labels[key]}</label>
                   <input
+                    id={inputId}
                     type="checkbox"
                     checked={value}
                     onChange={(e) => setNotifications({...notifications, [key]: e.target.checked})}
                     className="w-5 h-5 text-yellow-500 bg-gray-700 border-gray-600 rounded focus:ring-yellow-500"
                   />
-                </label>
+                </div>
               );
             })}
           </div>

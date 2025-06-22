@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { tradingService, StrategyParams, BotSession as BotSessionType } from '../services/tradingService';
 import { useAuth } from '../hooks/useAuth';
-import { Bot, Play, Pause, Settings, AlertTriangle, CheckCircle, TrendingUp, Shield, Zap, PlusCircle, XCircle, RefreshCw, Activity } from 'lucide-react';
+import { Bot, Play, PlusCircle, XCircle, RefreshCw } from 'lucide-react'; // Removed unused: Pause, Settings, AlertTriangle, CheckCircle, TrendingUp, Shield, Zap, Activity
 import { toast } from 'sonner'; // Import toast
 
 // Define a more specific type for the form state within this component
@@ -214,9 +214,9 @@ export function TradingBot() {
         <fieldset className={fieldsetWrapperClass}>
           <legend className={legendClass}>Global ATR (for SL/TP)</legend>
           <div className="grid grid-cols-3 gap-2">
-            <div><label className={labelClass}>ATR Period:</label><input type="number" name="atrPeriod" value={currentStrategyParams.atrPeriod ?? 14} onChange={handleConfigChange} className={inputClass} /></div>
-            <div><label className={labelClass}>SL Mult:</label><input type="number" step="0.1" name="atrMultiplierSL" value={currentStrategyParams.atrMultiplierSL ?? 1.5} onChange={handleConfigChange} className={inputClass} /></div>
-            <div><label className={labelClass}>TP Mult:</label><input type="number" step="0.1" name="atrMultiplierTP" value={currentStrategyParams.atrMultiplierTP ?? 3.0} onChange={handleConfigChange} className={inputClass} /></div>
+            <div><label htmlFor="modal-atrPeriod" className={labelClass}>ATR Period:</label><input id="modal-atrPeriod" type="number" name="atrPeriod" value={currentStrategyParams.atrPeriod ?? 14} onChange={handleConfigChange} className={inputClass} /></div>
+            <div><label htmlFor="modal-atrMultiplierSL" className={labelClass}>SL Mult:</label><input id="modal-atrMultiplierSL" type="number" step="0.1" name="atrMultiplierSL" value={currentStrategyParams.atrMultiplierSL ?? 1.5} onChange={handleConfigChange} className={inputClass} /></div>
+            <div><label htmlFor="modal-atrMultiplierTP" className={labelClass}>TP Mult:</label><input id="modal-atrMultiplierTP" type="number" step="0.1" name="atrMultiplierTP" value={currentStrategyParams.atrMultiplierTP ?? 3.0} onChange={handleConfigChange} className={inputClass} /></div>
           </div>
         </fieldset>
 
@@ -224,10 +224,10 @@ export function TradingBot() {
           <fieldset className={fieldsetWrapperClass}>
             <legend className={legendClass}>SMA Crossover</legend>
             <div className="grid grid-cols-2 gap-2">
-              <div><label className={labelClass}>SMA Short:</label><input type="number" name="smaShortPeriod" value={currentStrategyParams.smaShortPeriod ?? 20} onChange={handleConfigChange} className={inputClass} /></div>
-              <div><label className={labelClass}>SMA Long:</label><input type="number" name="smaLongPeriod" value={currentStrategyParams.smaLongPeriod ?? 50} onChange={handleConfigChange} className={inputClass} /></div>
+              <div><label htmlFor="modal-smaShortPeriod" className={labelClass}>SMA Short:</label><input id="modal-smaShortPeriod" type="number" name="smaShortPeriod" value={currentStrategyParams.smaShortPeriod ?? 20} onChange={handleConfigChange} className={inputClass} /></div>
+              <div><label htmlFor="modal-smaLongPeriod" className={labelClass}>SMA Long:</label><input id="modal-smaLongPeriod" type="number" name="smaLongPeriod" value={currentStrategyParams.smaLongPeriod ?? 50} onChange={handleConfigChange} className={inputClass} /></div>
             </div>
-             {(newSessionConfig.strategySelectionMode === 'ADAPTIVE') && <div className="mt-1"><label className={labelClass}>ADX Confirm (SMA):</label><input type="number" name="adxTrendMinLevel" value={currentStrategyParams.adxTrendMinLevel ?? 25} onChange={handleConfigChange} className={inputClass}/></div>}
+             {(newSessionConfig.strategySelectionMode === 'ADAPTIVE') && <div className="mt-1"><label htmlFor="modal-adxTrendMinLevelSma" className={labelClass}>ADX Confirm (SMA):</label><input id="modal-adxTrendMinLevelSma" type="number" name="adxTrendMinLevel" value={currentStrategyParams.adxTrendMinLevel ?? 25} onChange={handleConfigChange} className={inputClass}/></div>}
           </fieldset>
         )}
 
@@ -235,13 +235,13 @@ export function TradingBot() {
           <fieldset className={fieldsetWrapperClass}>
             <legend className={legendClass}>Mean Reversion (BB+RSI)</legend>
              <div className="grid grid-cols-2 gap-2 mb-1">
-                <div><label className={labelClass}>BB Period:</label><input type="number" name="bbPeriod" value={currentStrategyParams.bbPeriod ?? 20} onChange={handleConfigChange} className={inputClass} /></div>
-                <div><label className={labelClass}>BB StdDev:</label><input type="number" step="0.1" name="bbStdDevMult" value={currentStrategyParams.bbStdDevMult ?? 2} onChange={handleConfigChange} className={inputClass} /></div>
+                <div><label htmlFor="modal-bbPeriod" className={labelClass}>BB Period:</label><input id="modal-bbPeriod" type="number" name="bbPeriod" value={currentStrategyParams.bbPeriod ?? 20} onChange={handleConfigChange} className={inputClass} /></div>
+                <div><label htmlFor="modal-bbStdDevMult" className={labelClass}>BB StdDev:</label><input id="modal-bbStdDevMult" type="number" step="0.1" name="bbStdDevMult" value={currentStrategyParams.bbStdDevMult ?? 2} onChange={handleConfigChange} className={inputClass} /></div>
              </div>
              <div className="grid grid-cols-3 gap-2">
-                <div><label className={labelClass}>RSI Period:</label><input type="number" name="rsiPeriod" value={currentStrategyParams.rsiPeriod ?? 14} onChange={handleConfigChange} className={inputClass} /></div>
-                <div><label className={labelClass}>RSI O/Sold:</label><input type="number" name="rsiOversold" value={currentStrategyParams.rsiOversold ?? 30} onChange={handleConfigChange} className={inputClass} /></div>
-                <div><label className={labelClass}>RSI O/Bought:</label><input type="number" name="rsiOverbought" value={currentStrategyParams.rsiOverbought ?? 70} onChange={handleConfigChange} className={inputClass} /></div>
+                <div><label htmlFor="modal-rsiPeriod" className={labelClass}>RSI Period:</label><input id="modal-rsiPeriod" type="number" name="rsiPeriod" value={currentStrategyParams.rsiPeriod ?? 14} onChange={handleConfigChange} className={inputClass} /></div>
+                <div><label htmlFor="modal-rsiOversold" className={labelClass}>RSI O/Sold:</label><input id="modal-rsiOversold" type="number" name="rsiOversold" value={currentStrategyParams.rsiOversold ?? 30} onChange={handleConfigChange} className={inputClass} /></div>
+                <div><label htmlFor="modal-rsiOverbought" className={labelClass}>RSI O/Bought:</label><input id="modal-rsiOverbought" type="number" name="rsiOverbought" value={currentStrategyParams.rsiOverbought ?? 70} onChange={handleConfigChange} className={inputClass} /></div>
              </div>
           </fieldset>
         )}
@@ -249,8 +249,8 @@ export function TradingBot() {
             <fieldset className={fieldsetWrapperClass}>
                 <legend className={legendClass}>Breakout</legend>
                 <div className="grid grid-cols-2 gap-2">
-                    <div><label className={labelClass}>Lookback:</label><input type="number" name="breakoutLookbackPeriod" value={currentStrategyParams.breakoutLookbackPeriod ?? 50} onChange={handleConfigChange} className={inputClass} /></div>
-                    <div><label className={labelClass}>ATR Spike Mult:</label><input type="number" step="0.1" name="atrSpikeMultiplier" value={currentStrategyParams.atrSpikeMultiplier ?? 1.5} onChange={handleConfigChange} className={inputClass} /></div>
+                    <div><label htmlFor="modal-breakoutLookbackPeriod" className={labelClass}>Lookback:</label><input id="modal-breakoutLookbackPeriod" type="number" name="breakoutLookbackPeriod" value={currentStrategyParams.breakoutLookbackPeriod ?? 50} onChange={handleConfigChange} className={inputClass} /></div>
+                    <div><label htmlFor="modal-atrSpikeMultiplier" className={labelClass}>ATR Spike Mult:</label><input id="modal-atrSpikeMultiplier" type="number" step="0.1" name="atrSpikeMultiplier" value={currentStrategyParams.atrSpikeMultiplier ?? 1.5} onChange={handleConfigChange} className={inputClass} /></div>
                 </div>
             </fieldset>
         )}
@@ -258,9 +258,9 @@ export function TradingBot() {
           <fieldset className={fieldsetWrapperClass}>
             <legend className={legendClass}>Adaptive Regime (ADX)</legend>
             <div className="grid grid-cols-3 gap-2">
-                <div><label className={labelClass}>ADX Period:</label><input type="number" name="adxPeriod" value={currentStrategyParams.adxPeriod ?? 14} onChange={handleConfigChange} className={inputClass} /></div>
-                <div><label className={labelClass}>Range Thresh:</label><input type="number" name="adxRangeThreshold" value={currentStrategyParams.adxRangeThreshold ?? 20} onChange={handleConfigChange} className={inputClass} /></div>
-                <div><label className={labelClass}>Trend Thresh:</label><input type="number" name="adxTrendThreshold" value={currentStrategyParams.adxTrendThreshold ?? 25} onChange={handleConfigChange} className={inputClass} /></div>
+                <div><label htmlFor="modal-adxPeriod" className={labelClass}>ADX Period:</label><input id="modal-adxPeriod" type="number" name="adxPeriod" value={currentStrategyParams.adxPeriod ?? 14} onChange={handleConfigChange} className={inputClass} /></div>
+                <div><label htmlFor="modal-adxRangeThreshold" className={labelClass}>Range Thresh:</label><input id="modal-adxRangeThreshold" type="number" name="adxRangeThreshold" value={currentStrategyParams.adxRangeThreshold ?? 20} onChange={handleConfigChange} className={inputClass} /></div>
+                <div><label htmlFor="modal-adxTrendThreshold" className={labelClass}>Trend Thresh:</label><input id="modal-adxTrendThreshold" type="number" name="adxTrendThreshold" value={currentStrategyParams.adxTrendThreshold ?? 25} onChange={handleConfigChange} className={inputClass} /></div>
             </div>
           </fieldset>
         )}
@@ -302,7 +302,7 @@ export function TradingBot() {
       {/* Active Bot Sessions */}
       <div className="mb-8">
         <h2 className="text-2xl font-semibold mb-4">Active Bot Sessions</h2>
-        {activeBotSessions.length === 0 && !isLoading && <p className="text-gray-400">No active bot sessions. Click "Start New Bot Session" to create one.</p>}
+        {activeBotSessions.length === 0 && !isLoading && <p className="text-gray-400">No active bot sessions. Click &quot;Start New Bot Session&quot; to create one.</p>}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {activeBotSessions.map(session => (
             <div key={session.id} className="bg-gray-800/70 backdrop-blur-md border border-gray-700 rounded-xl p-6 shadow-xl">
@@ -385,23 +385,23 @@ export function TradingBot() {
 
             <div className="space-y-4 text-sm">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Trading Account:</label>
-                <select name="tradingAccountId" value={newSessionConfig.tradingAccountId} onChange={handleConfigChange} className="w-full bg-gray-700 p-2 rounded border border-gray-600 text-white focus:border-yellow-500 focus:outline-none">
+                <label htmlFor="tradingAccountId" className="block text-sm font-medium text-gray-300 mb-1">Trading Account:</label>
+                <select id="tradingAccountId" name="tradingAccountId" value={newSessionConfig.tradingAccountId} onChange={handleConfigChange} className="w-full bg-gray-700 p-2 rounded border border-gray-600 text-white focus:border-yellow-500 focus:outline-none">
                   <option value="">Select Account</option>
                   {tradingAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.server_name} ({acc.login_id}) - {acc.platform}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Base Risk Level (for Lot Size):</label>
-                <select name="riskLevel" value={newSessionConfig.riskLevel} onChange={handleConfigChange} className="w-full bg-gray-700 p-2 rounded border border-gray-600 text-white focus:border-yellow-500 focus:outline-none">
+                <label htmlFor="riskLevel" className="block text-sm font-medium text-gray-300 mb-1">Base Risk Level (for Lot Size):</label>
+                <select id="riskLevel" name="riskLevel" value={newSessionConfig.riskLevel} onChange={handleConfigChange} className="w-full bg-gray-700 p-2 rounded border border-gray-600 text-white focus:border-yellow-500 focus:outline-none">
                   <option value="conservative">Conservative</option>
                   <option value="medium">Medium</option>
                   <option value="risky">Risky</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Strategy Selection Mode:</label>
-                <select name="strategySelectionMode" value={newSessionConfig.strategySelectionMode} onChange={handleConfigChange} className="w-full bg-gray-700 p-2 rounded border border-gray-600 text-white focus:border-yellow-500 focus:outline-none">
+                <label htmlFor="strategySelectionMode" className="block text-sm font-medium text-gray-300 mb-1">Strategy Selection Mode:</label>
+                <select id="strategySelectionMode" name="strategySelectionMode" value={newSessionConfig.strategySelectionMode} onChange={handleConfigChange} className="w-full bg-gray-700 p-2 rounded border border-gray-600 text-white focus:border-yellow-500 focus:outline-none">
                   <option value="ADAPTIVE">Adaptive (Regime Switching)</option>
                   <option value="SMA_ONLY">SMA Crossover Only</option>
                   <option value="MEAN_REVERSION_ONLY">Mean Reversion Only</option>

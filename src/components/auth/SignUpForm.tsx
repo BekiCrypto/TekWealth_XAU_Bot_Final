@@ -28,16 +28,17 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
   const onSubmit = async (data: SignUpFormData) => {
     setLoading(true);
     try {
-      const { error } = await signUp(data.email, data.password, data.fullName);
+      // const { error } = await signUp(data.email, data.password, data.fullName); // error variable was unused
+      const result = await signUp(data.email, data.password, data.fullName);
       
-      if (error) {
-        toast.error(error.message);
+      if (result.error) {
+        toast.error(result.error.message);
       } else {
         toast.success('Account created successfully! Please check your email to verify your account.');
         onSuccess();
       }
-    } catch (error) {
-      toast.error('An unexpected error occurred');
+    } catch (e: any) { // Catch any error
+      toast.error(e?.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -56,12 +57,13 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="fullName-signup" className="block text-sm font-medium text-gray-300 mb-2">
               Full Name
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
+                id="fullName-signup"
                 {...register('fullName', {
                   required: 'Full name is required',
                   minLength: {
@@ -80,12 +82,13 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="email-signup" className="block text-sm font-medium text-gray-300 mb-2">
               Email Address
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
+                id="email-signup"
                 {...register('email', {
                   required: 'Email is required',
                   pattern: {
@@ -104,12 +107,13 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="password-signup" className="block text-sm font-medium text-gray-300 mb-2">
               Password
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
+                id="password-signup"
                 {...register('password', {
                   required: 'Password is required',
                   minLength: {
@@ -139,12 +143,13 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="confirmPassword-signup" className="block text-sm font-medium text-gray-300 mb-2">
               Confirm Password
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
+                id="confirmPassword-signup"
                 {...register('confirmPassword', {
                   required: 'Please confirm your password',
                   validate: value => value === password || 'Passwords do not match'

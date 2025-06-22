@@ -191,44 +191,44 @@ const BacktestingPage: React.FC = () => {
       <>
         <fieldset style={{margin: '10px 0', border: '1px dashed #888', padding: '10px', background: '#222'}}>
           <legend style={{color: '#ddd'}}>Global ATR (for SL/TP)</legend>
-          <div><label>ATR Period: <input type="number" name="atrPeriod" value={sp.atrPeriod ?? 14} onChange={handleParamChange} /></label></div>
-          <div><label>ATR SL Multiplier: <input type="number" step="0.1" name="atrMultiplierSL" value={sp.atrMultiplierSL ?? 1.5} onChange={handleParamChange} /></label></div>
-          <div><label>ATR TP Multiplier: <input type="number" step="0.1" name="atrMultiplierTP" value={sp.atrMultiplierTP ?? 3.0} onChange={handleParamChange} /></label></div>
+          <div><label htmlFor="atrPeriod">ATR Period: </label><input id="atrPeriod" type="number" name="atrPeriod" value={sp.atrPeriod ?? 14} onChange={handleParamChange} /></div>
+          <div><label htmlFor="atrMultiplierSL">ATR SL Multiplier: </label><input id="atrMultiplierSL" type="number" step="0.1" name="atrMultiplierSL" value={sp.atrMultiplierSL ?? 1.5} onChange={handleParamChange} /></div>
+          <div><label htmlFor="atrMultiplierTP">ATR TP Multiplier: </label><input id="atrMultiplierTP" type="number" step="0.1" name="atrMultiplierTP" value={sp.atrMultiplierTP ?? 3.0} onChange={handleParamChange} /></div>
         </fieldset>
 
         {(params.strategySelectionMode === 'SMA_ONLY' || params.strategySelectionMode === 'ADAPTIVE') && (
           <fieldset style={{margin: '10px 0', border: '1px dashed #888', padding: '10px', background: '#222'}}>
             <legend style={{color: '#ddd'}}>SMA Crossover Settings</legend>
-            <div><label>SMA Short: <input type="number" name="smaShortPeriod" value={sp.smaShortPeriod ?? 20} onChange={handleParamChange} /></label></div>
-            <div><label>SMA Long: <input type="number" name="smaLongPeriod" value={sp.smaLongPeriod ?? 50} onChange={handleParamChange} /></label></div>
-            {(params.strategySelectionMode === 'ADAPTIVE') && <div><label>ADX Confirm Level (for SMA): <input type="number" name="adxTrendMinLevel" value={sp.adxTrendMinLevel ?? 25} onChange={handleParamChange} /></label></div>}
+            <div><label htmlFor="smaShortPeriod">SMA Short: </label><input id="smaShortPeriod" type="number" name="smaShortPeriod" value={sp.smaShortPeriod ?? 20} onChange={handleParamChange} /></div>
+            <div><label htmlFor="smaLongPeriod">SMA Long: </label><input id="smaLongPeriod" type="number" name="smaLongPeriod" value={sp.smaLongPeriod ?? 50} onChange={handleParamChange} /></div>
+            {(params.strategySelectionMode === 'ADAPTIVE') && <div><label htmlFor="adxTrendMinLevelSma">ADX Confirm Level (for SMA): </label><input id="adxTrendMinLevelSma" type="number" name="adxTrendMinLevel" value={sp.adxTrendMinLevel ?? 25} onChange={handleParamChange} /></div>}
           </fieldset>
         )}
 
         {(params.strategySelectionMode === 'MEAN_REVERSION_ONLY' || params.strategySelectionMode === 'ADAPTIVE') && (
           <fieldset style={{margin: '10px 0', border: '1px dashed #888', padding: '10px', background: '#222'}}>
             <legend style={{color: '#ddd'}}>Mean Reversion (BB+RSI) Settings</legend>
-            <div><label>BB Period: <input type="number" name="bbPeriod" value={sp.bbPeriod ?? 20} onChange={handleParamChange} /></label></div>
-            <div><label>BB StdDev Mult: <input type="number" step="0.1" name="bbStdDevMult" value={sp.bbStdDevMult ?? 2} onChange={handleParamChange} /></label></div>
-            <div><label>RSI Period: <input type="number" name="rsiPeriod" value={sp.rsiPeriod ?? 14} onChange={handleParamChange} /></label></div>
-            <div><label>RSI Oversold: <input type="number" name="rsiOversold" value={sp.rsiOversold ?? 30} onChange={handleParamChange} /></label></div>
-            <div><label>RSI Overbought: <input type="number" name="rsiOverbought" value={sp.rsiOverbought ?? 70} onChange={handleParamChange} /></label></div>
+            <div><label htmlFor="bbPeriod">BB Period: </label><input id="bbPeriod" type="number" name="bbPeriod" value={sp.bbPeriod ?? 20} onChange={handleParamChange} /></div>
+            <div><label htmlFor="bbStdDevMult">BB StdDev Mult: </label><input id="bbStdDevMult" type="number" step="0.1" name="bbStdDevMult" value={sp.bbStdDevMult ?? 2} onChange={handleParamChange} /></div>
+            <div><label htmlFor="rsiPeriod">RSI Period: </label><input id="rsiPeriod" type="number" name="rsiPeriod" value={sp.rsiPeriod ?? 14} onChange={handleParamChange} /></div>
+            <div><label htmlFor="rsiOversold">RSI Oversold: </label><input id="rsiOversold" type="number" name="rsiOversold" value={sp.rsiOversold ?? 30} onChange={handleParamChange} /></div>
+            <div><label htmlFor="rsiOverbought">RSI Overbought: </label><input id="rsiOverbought" type="number" name="rsiOverbought" value={sp.rsiOverbought ?? 70} onChange={handleParamChange} /></div>
           </fieldset>
         )}
          {(params.strategySelectionMode === 'BREAKOUT_ONLY' || params.strategySelectionMode === 'ADAPTIVE') && (
             <fieldset style={{margin: '10px 0', border: '1px dashed #888', padding: '10px', background: '#222'}}>
                 <legend style={{color: '#ddd'}}>Breakout Settings</legend>
-                <div><label>Breakout Lookback: <input type="number" name="breakoutLookbackPeriod" value={sp.breakoutLookbackPeriod ?? 50} onChange={handleParamChange} /></label></div>
-                <div><label>ATR Spike Multiplier: <input type="number" step="0.1" name="atrSpikeMultiplier" value={sp.atrSpikeMultiplier ?? 1.5} onChange={handleParamChange} /></label></div>
+                <div><label htmlFor="breakoutLookbackPeriod">Breakout Lookback: </label><input id="breakoutLookbackPeriod" type="number" name="breakoutLookbackPeriod" value={sp.breakoutLookbackPeriod ?? 50} onChange={handleParamChange} /></div>
+                <div><label htmlFor="atrSpikeMultiplier">ATR Spike Multiplier: </label><input id="atrSpikeMultiplier" type="number" step="0.1" name="atrSpikeMultiplier" value={sp.atrSpikeMultiplier ?? 1.5} onChange={handleParamChange} /></div>
             </fieldset>
         )}
 
         {params.strategySelectionMode === 'ADAPTIVE' && (
           <fieldset style={{margin: '10px 0', border: '1px dashed #888', padding: '10px', background: '#222'}}>
             <legend style={{color: '#ddd'}}>Adaptive Regime (ADX) Settings</legend>
-            <div><label>ADX Period: <input type="number" name="adxPeriod" value={sp.adxPeriod ?? 14} onChange={handleParamChange} /></label></div>
-            <div><label>ADX Range Threshold: <input type="number" name="adxRangeThreshold" value={sp.adxRangeThreshold ?? 20} onChange={handleParamChange} /></label></div>
-            <div><label>ADX Trend Threshold: <input type="number" name="adxTrendThreshold" value={sp.adxTrendThreshold ?? 25} onChange={handleParamChange} /></label></div>
+            <div><label htmlFor="adxPeriod">ADX Period: </label><input id="adxPeriod" type="number" name="adxPeriod" value={sp.adxPeriod ?? 14} onChange={handleParamChange} /></div>
+            <div><label htmlFor="adxRangeThreshold">ADX Range Threshold: </label><input id="adxRangeThreshold" type="number" name="adxRangeThreshold" value={sp.adxRangeThreshold ?? 20} onChange={handleParamChange} /></div>
+            <div><label htmlFor="adxTrendThreshold">ADX Trend Threshold: </label><input id="adxTrendThreshold" type="number" name="adxTrendThreshold" value={sp.adxTrendThreshold ?? 25} onChange={handleParamChange} /></div>
           </fieldset>
         )}
       </>
@@ -251,22 +251,22 @@ const BacktestingPage: React.FC = () => {
         <h2 style={{ fontSize: '1.5rem', fontWeight: 'semibold', marginBottom: '1rem', borderBottom: '1px solid #4A5568', paddingBottom: '0.5rem' }}>Configure Backtest</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div><label className={labelStyle}>Symbol: </label><input name="symbol" value={params.symbol} onChange={handleParamChange} className={inputStyle} /></div>
+          <div><label htmlFor="symbol" className={labelStyle}>Symbol: </label><input id="symbol" name="symbol" value={params.symbol} onChange={handleParamChange} className={inputStyle} /></div>
           <div>
-            <label className={labelStyle}>Timeframe: </label>
-            <select name="timeframe" value={params.timeframe} onChange={handleParamChange} className={inputStyle + " w-full"}>
+            <label htmlFor="timeframe" className={labelStyle}>Timeframe: </label>
+            <select id="timeframe" name="timeframe" value={params.timeframe} onChange={handleParamChange} className={inputStyle + " w-full"}>
               <option value="15min">15 Minutes</option>
               <option value="1hour">1 Hour</option>
               <option value="daily">Daily</option>
             </select>
           </div>
-          <div><label className={labelStyle}>Start Date: </label><input type="date" name="startDate" value={params.startDate} onChange={handleParamChange} className={inputStyle + " w-full"} /></div>
-          <div><label className={labelStyle}>End Date: </label><input type="date" name="endDate" value={params.endDate} onChange={handleParamChange} className={inputStyle + " w-full"} /></div>
+          <div><label htmlFor="startDate" className={labelStyle}>Start Date: </label><input id="startDate" type="date" name="startDate" value={params.startDate} onChange={handleParamChange} className={inputStyle + " w-full"} /></div>
+          <div><label htmlFor="endDate" className={labelStyle}>End Date: </label><input id="endDate" type="date" name="endDate" value={params.endDate} onChange={handleParamChange} className={inputStyle + " w-full"} /></div>
         </div>
 
         <div className="mb-4">
-          <label className={labelStyle}>Strategy Mode: </label>
-          <select name="strategySelectionMode" value={params.strategySelectionMode} onChange={handleParamChange} className={inputStyle + " w-full"}>
+          <label htmlFor="strategySelectionMode" className={labelStyle}>Strategy Mode: </label>
+          <select id="strategySelectionMode" name="strategySelectionMode" value={params.strategySelectionMode} onChange={handleParamChange} className={inputStyle + " w-full"}>
             <option value="ADAPTIVE">Adaptive (Regime Switching)</option>
             <option value="SMA_ONLY">SMA Crossover Only</option>
             <option value="MEAN_REVERSION_ONLY">Mean Reversion Only</option>
@@ -277,8 +277,8 @@ const BacktestingPage: React.FC = () => {
         <fieldset style={fieldsetStyle}>
             <legend style={legendStyle}>General Risk Settings</legend>
             <div>
-                <label className={labelStyle}>Risk Level (for Base Lot Size): </label>
-                <select name="riskLevel" value={params.riskSettings.riskLevel} onChange={handleParamChange} className={inputStyle + " w-full"}>
+                <label htmlFor="riskLevel" className={labelStyle}>Risk Level (for Base Lot Size): </label>
+                <select id="riskLevel" name="riskLevel" value={params.riskSettings.riskLevel} onChange={handleParamChange} className={inputStyle + " w-full"}>
                     <option value="conservative">Conservative</option>
                     <option value="medium">Medium</option>
                     <option value="risky">Risky</option>
@@ -286,12 +286,12 @@ const BacktestingPage: React.FC = () => {
             </div>
             {/* <div><label className={labelStyle}>Max Lot Size (Override): <input type="number" step="0.01" name="maxLotSize" value={params.riskSettings.maxLotSize ?? ''} onChange={handleParamChange} className={inputStyle} /></label></div> */}
             <div className="mt-2">
-                <label className={labelStyle}>Commission Per Lot (e.g., 0.7 for $0.70): </label>
-                <input type="number" step="0.01" name="commissionPerLot" value={params.commissionPerLot ?? 0} onChange={handleParamChange} className={inputStyle + " w-full"} />
+                <label htmlFor="commissionPerLot" className={labelStyle}>Commission Per Lot (e.g., 0.7 for $0.70): </label>
+                <input id="commissionPerLot" type="number" step="0.01" name="commissionPerLot" value={params.commissionPerLot ?? 0} onChange={handleParamChange} className={inputStyle + " w-full"} />
             </div>
             <div className="mt-2">
-                <label className={labelStyle}>Slippage Points (e.g., 0.2 for XAUUSD): </label>
-                <input type="number" step="0.01" name="slippagePoints" value={params.slippagePoints ?? 0} onChange={handleParamChange} className={inputStyle + " w-full"} />
+                <label htmlFor="slippagePoints" className={labelStyle}>Slippage Points (e.g., 0.2 for XAUUSD): </label>
+                <input id="slippagePoints" type="number" step="0.01" name="slippagePoints" value={params.slippagePoints ?? 0} onChange={handleParamChange} className={inputStyle + " w-full"} />
             </div>
         </fieldset>
 

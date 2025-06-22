@@ -4,7 +4,6 @@ import {
   Activity, 
   BarChart3, 
   Settings,
-  AlertTriangle,
   CheckCircle,
   Zap
 } from 'lucide-react';

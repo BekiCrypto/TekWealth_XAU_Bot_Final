@@ -102,7 +102,7 @@ async function upsertTradingAccountAction(supabase: any, data: any) {
       // They should be updated by a sync process with the trade provider if needed.
     };
 
-    let query = supabase.from('trading_accounts');
+    const query = supabase.from('trading_accounts');
     let result;
 
     if (accountId) { // If accountId is provided, it's an update
@@ -1042,7 +1042,7 @@ async function sendEmail(
       return { success: true, messageId: messageId || undefined };
     } else {
       // Attempt to parse error body for better logging
-      let errorBodyText = await response.text();
+      const errorBodyText = await response.text();
       let errorBodyJson = null;
       try {
         errorBodyJson = JSON.parse(errorBodyText);
@@ -1183,8 +1183,8 @@ function calculateRSI(ohlcData: Array<{close_price: number}>, period: number): (
     const closePrices = ohlcData.map(d => d.close_price);
     const rsiValues: (number | null)[] = new Array(closePrices.length).fill(null);
 
-    let gains: number[] = [];
-    let losses: number[] = [];
+    const gains: number[] = [];
+    const losses: number[] = [];
 
     for (let i = 1; i < closePrices.length; i++) {
         const change = closePrices[i] - closePrices[i-1];
@@ -2697,12 +2697,11 @@ function detectMarketRegime(
   if (currentADX > adxTrendThreshold) {
     if (currentPDI > currentNDI) return 'TRENDING_UP';
     if (currentNDI > currentPDI) return 'TRENDING_DOWN';
-  }
-
-  if (currentADX < adxRangeThreshold) {
+    // If ADX is high but PDI/NDI are equal or unclear, treat as unclear trend direction for now.
+    return 'UNCLEAR';
+  } else if (currentADX < adxRangeThreshold) { // Explicitly chain with else if
      // Check for breakout setup: low ADX and very narrow BBW
-    if (avgRecentBBW !== null && currentBBW < avgRecentBBW * 0.6 && currentBBW < 0.05) { // Example: BBW is 60% of recent avg AND very tight absolutely
-        // Determine potential breakout direction by recent price action or very short term MA
+    if (avgRecentBBW !== null && currentBBW < avgRecentBBW * 0.6 && currentBBW < 0.05) {
         const lastFewCloses = ohlcDataForRegime.slice(-5).map(c => c.close_price);
         if (lastFewCloses.length >= 2) {
             if (lastFewCloses[lastFewCloses.length-1] > lastFewCloses[0]) return 'BREAKOUT_SETUP_UP';
@@ -2713,6 +2712,7 @@ function detectMarketRegime(
   }
 
   // Could add more rules here for VOLATILE_UNCLEAR based on ATR vs BBW etc.
+  // This state is reached if ADX is between adxRangeThreshold and adxTrendThreshold, or if ADX is high but direction unclear.
   return 'UNCLEAR';
 }
 // --- End Market Regime Detection ---

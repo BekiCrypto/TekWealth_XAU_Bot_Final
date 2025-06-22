@@ -24,16 +24,17 @@ export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
     try {
-      const { error } = await signIn(data.email, data.password);
+      // const { error } = await signIn(data.email, data.password); // error variable was unused
+      const result = await signIn(data.email, data.password);
       
-      if (error) {
-        toast.error(error.message);
+      if (result.error) {
+        toast.error(result.error.message);
       } else {
         toast.success('Welcome back!');
         onSuccess();
       }
-    } catch (error) {
-      toast.error('An unexpected error occurred');
+    } catch (e: any) { // Catch any error
+      toast.error(e?.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -52,12 +53,13 @@ export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="email-login" className="block text-sm font-medium text-gray-300 mb-2">
               Email Address
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
+                id="email-login"
                 {...register('email', {
                   required: 'Email is required',
                   pattern: {
@@ -76,12 +78,13 @@ export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="password-login" className="block text-sm font-medium text-gray-300 mb-2">
               Password
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
+                id="password-login"
                 {...register('password', {
                   required: 'Password is required',
                   minLength: {
@@ -117,7 +120,7 @@ export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
 
         <div className="mt-6 text-center">
           <p className="text-gray-400">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <button
               onClick={onToggleMode}
               className="text-yellow-400 hover:text-yellow-300 font-medium"

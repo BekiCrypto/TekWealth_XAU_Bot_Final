@@ -67,34 +67,32 @@ export function AdminDashboard() {
       return;
     }
 
-    const fetchEnvData = async () => {
+    const fetchEnvData = React.useCallback(async () => {
       setIsLoadingEnv(true);
       setErrorEnv(null);
       try {
         const { data, error } = await tradingService.adminGetEnvVariablesStatus();
-        if (error) throw error; // Let catch block handle it
+        if (error) throw error;
         if (data) {
           setEnvVarStatuses(data);
         } else {
-          // This case might happen if the function returns { data: null, error: null } on success with no items,
-          // or if the data field is unexpectedly null.
           setEnvVarStatuses([]);
         }
       } catch (err: any) {
         console.error("AdminDashboard fetchEnvData error:", err);
         setErrorEnv(err.message || 'Failed to fetch ENV variable statuses.');
-        setEnvVarStatuses([]); // Clear data on error
+        setEnvVarStatuses([]);
       } finally {
         setIsLoadingEnv(false);
       }
-    };
+    }, []); // No external dependencies other than static setters and service
 
-    const fetchUsersData = async () => {
+    const fetchUsersData = React.useCallback(async () => {
       setIsLoadingUsers(true);
       setErrorUsers(null);
       try {
         const { data, error } = await tradingService.adminListUsersOverview();
-        if (error) throw error; // Let catch block handle it
+        if (error) throw error;
         if (data) {
           setUsers(data);
         } else {
@@ -103,29 +101,29 @@ export function AdminDashboard() {
       } catch (err: any) {
         console.error("AdminDashboard fetchUsersData error:", err);
         setErrorUsers(err.message || 'Failed to fetch users overview.');
-        setUsers([]); // Clear data on error
+        setUsers([]);
       } finally {
         setIsLoadingUsers(false);
       }
-    };
+    }, []); // No external dependencies other than static setters and service
 
-    if(user && userRole === 'admin') { // Ensure user and role are loaded before fetching
+    if(user && userRole === 'admin') {
         fetchEnvData();
         fetchUsersData();
-        fetchSystemLogs(); // Call new function
+        fetchSystemLogs();
     }
-  }, [user, userRole, logFilters]); // Rerun if user, role, or logFilters change
+  }, [user, userRole, logFilters, fetchEnvData, fetchUsersData, fetchSystemLogs]);
 
-  const fetchSystemLogs = async () => {
+  const fetchSystemLogs = React.useCallback(async () => {
     if (userRole !== 'admin') return;
     setIsLoadingLogs(true);
     setErrorLogs(null);
     try {
-      const { data, error } = await tradingService.adminGetSystemLogs(logFilters);
+      const { data, error } = await tradingService.adminGetSystemLogs(logFilters); // logFilters is from component scope
       if (error) throw error;
       if (data && data.logs) {
         setSystemLogs(data.logs);
-        setTotalLogs(data.count || 0); // Assuming backend sends total count for pagination
+        setTotalLogs(data.count || 0);
       } else {
         setSystemLogs([]);
         setTotalLogs(0);
@@ -138,7 +136,7 @@ export function AdminDashboard() {
     } finally {
       setIsLoadingLogs(false);
     }
-  };
+  }, [userRole, logFilters]); // Added userRole and logFilters as dependencies
 
   const handleLogFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setLogFilters(prev => ({ ...prev, [e.target.name]: e.target.value, offset: 0 })); // Reset offset on filter change

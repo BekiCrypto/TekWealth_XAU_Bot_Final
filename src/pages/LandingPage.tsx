@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// import { useNavigate } from 'react-router-dom'; // useNavigate was unused
 import { 
   Shield, 
   TrendingUp, 
@@ -17,6 +18,16 @@ interface LandingPageProps {
 
 export function LandingPage({ onLogin }: LandingPageProps) {
   const [showLogin, setShowLogin] = useState(false);
+  // const navigate = useNavigate(); // Initialize navigate - was unused
+
+  // This function is called by the buttons, it calls the onLogin prop
+  // which updates App.tsx's state, causing a re-render and navigation
+  // via the Routes configuration in App.tsx.
+  const handleLoginClick = (role: 'admin' | 'subscriber') => {
+    onLogin(role);
+    // No explicit navigate(role === 'admin' ? '/admin' : '/dashboard') here,
+    // as App.tsx handles redirection based on userRole state change.
+  };
 
   const plans = [
     {
@@ -81,7 +92,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
 
             <div className="space-y-4">
               <button
-                onClick={() => onLogin('admin')}
+                onClick={() => handleLoginClick('admin')}
                 className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-gray-900 font-semibold py-3 px-6 rounded-lg hover:from-yellow-400 hover:to-yellow-500 transition-all flex items-center justify-center gap-2"
               >
                 <Crown className="w-5 h-5" />
@@ -89,7 +100,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
               </button>
               
               <button
-                onClick={() => onLogin('subscriber')}
+                onClick={() => handleLoginClick('subscriber')}
                 className="w-full bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-700 transition-all flex items-center justify-center gap-2"
               >
                 <Users className="w-5 h-5" />
