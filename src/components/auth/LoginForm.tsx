@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Shield, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 interface LoginFormData {
   email: string;
