@@ -3370,3 +3370,4 @@ async function fetchAndStoreHistoricalData(supabase: any, data: any, apiKey: str
     });
   }
 }
+}
