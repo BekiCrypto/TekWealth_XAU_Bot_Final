@@ -1,0 +1,38 @@
+name: Deploy Vite App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      # Example: Deploy to Vercel
+      # - name: Deploy to Vercel
+      #   run: npx vercel --token=${{ secrets.VERCEL_TOKEN }} --prod
+
+      # OR: Deploy to Netlify
+      # - name: Deploy to Netlify
+      #   uses: nwtgck/actions-netlify@v2.0
+      #   with:
+      #     publish-dir: ./dist
+      #     production-deploy: true
+      #     netlify-auth-token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      #     netlify-site-id: ${{ secrets.NETLIFY_SITE_ID }}
