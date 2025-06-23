@@ -48,11 +48,27 @@ export class TradingEngine {
   }
 
   // Engine Control
+  private engineStartTime: Date | null = null;
+  private logs: Array<{ time: string, level: string, message: string }> = [];
+  private readonly MAX_LOGS = 100;
+
+  private addLog(level: string, message: string) {
+    const now = new Date();
+    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+    this.logs.unshift({ time, level, message });
+    if (this.logs.length > this.MAX_LOGS) {
+      this.logs.pop();
+    }
+    // For debugging, still log to console
+    console.log(`[TradingEngine ${level}] ${time} - ${message}`);
+  }
+
   async startEngine() {
     if (this.engineRunning) return;
     
-    console.log('🚀 Starting Trading Engine...');
+    this.addLog('INFO', '🚀 Attempting to start Trading Engine...');
     this.engineRunning = true;
+    this.engineStartTime = new Date();
     
     // Load active bot sessions
     await this.loadActiveSessions();
@@ -63,14 +79,15 @@ export class TradingEngine {
     // Start main trading loop
     this.startTradingLoop();
     
-    console.log('✅ Trading Engine started successfully');
+    this.addLog('INFO', '✅ Trading Engine started successfully');
   }
 
   async stopEngine() {
     if (!this.engineRunning) return;
     
-    console.log('🛑 Stopping Trading Engine...');
+    this.addLog('INFO', '🛑 Attempting to stop Trading Engine...');
     this.engineRunning = false;
+    this.engineStartTime = null;
     
     // Stop price feed
     if (this.priceUpdateInterval) {
@@ -81,7 +98,7 @@ export class TradingEngine {
     // Close all open positions safely
     await this.emergencyCloseAllPositions();
     
-    console.log('✅ Trading Engine stopped safely');
+    this.addLog('INFO', '✅ Trading Engine stopped safely');
   }
 
   // Market Data Management
@@ -118,14 +135,14 @@ export class TradingEngine {
       await this.analyzeMarketForAllSessions();
 
     } catch (error) {
-      console.error('Error updating market data:', error);
+      this.addLog('ERROR', `Error updating market data: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   private async storePriceData(data: MarketData) {
     const price = (data.bid + data.ask) / 2;
     
-    await supabase.from('price_data').insert({
+    const { error } = await supabase.from('price_data').insert({
       symbol: data.symbol,
       timestamp: data.timestamp.toISOString(),
       open_price: price,
@@ -154,7 +171,7 @@ export class TradingEngine {
         // Schedule next iteration
         setTimeout(tradingLoop, 5000); // Run every 5 seconds
       } catch (error) {
-        console.error('Error in trading loop:', error);
+        this.addLog('ERROR', `Error in trading loop: ${error instanceof Error ? error.message : String(error)}`);
         setTimeout(tradingLoop, 10000); // Retry after 10 seconds on error
       }
     };
@@ -186,7 +203,7 @@ export class TradingEngine {
       }
 
     } catch (error) {
-      console.error(`Error processing session ${session.id}:`, error);
+      this.addLog('ERROR', `Error processing session ${session.id}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -351,10 +368,10 @@ export class TradingEngine {
         message: `${signal.action} ${lotSize} lots of XAUUSD at $${price.toFixed(2)} - ${signal.reason}`
       });
 
-      console.log(`✅ Trade executed: ${signal.action} ${lotSize} lots at ${price}`);
+      this.addLog('SUCCESS', `Trade executed: ${signal.action} ${lotSize} lots of XAUUSD at $${price.toFixed(2)}`);
 
     } catch (error) {
-      console.error('Error executing trade:', error);
+      this.addLog('ERROR', `Error executing trade: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -376,7 +393,7 @@ export class TradingEngine {
       }
 
     } catch (error) {
-      console.error('Error managing positions:', error);
+      this.addLog('ERROR', `Error managing positions: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -463,10 +480,10 @@ export class TradingEngine {
         message: `Trade closed: ${profitLoss >= 0 ? 'Profit' : 'Loss'} $${Math.abs(profitLoss).toFixed(2)} - ${reason}`
       });
 
-      console.log(`✅ Trade closed: ${reason}, P&L: $${profitLoss.toFixed(2)}`);
+      this.addLog('SUCCESS', `Trade closed: ${reason}, P&L: $${profitLoss.toFixed(2)}`);
 
     } catch (error) {
-      console.error('Error closing trade:', error);
+      this.addLog('ERROR', `Error closing trade: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -587,7 +604,7 @@ export class TradingEngine {
       .eq('id', sessionId);
 
     this.activeSessions.delete(sessionId);
-    console.log(`⏸️ Session ${sessionId} paused: ${reason}`);
+    this.addLog('INFO', `⏸️ Session ${sessionId} paused: ${reason}`);
   }
 
   private async emergencyCloseAllPositions() {
@@ -655,7 +672,9 @@ export class TradingEngine {
       running: this.engineRunning,
       activeSessions: this.activeSessions.size,
       lastPriceUpdate: this.marketData.get('XAUUSD')?.timestamp,
-      marketData: Object.fromEntries(this.marketData)
+      marketData: Object.fromEntries(this.marketData),
+      engineStartTime: this.engineStartTime,
+      logs: this.logs
     };
   }
 }
