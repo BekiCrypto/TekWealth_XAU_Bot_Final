@@ -1,25 +1,25 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { Database } from '../../types/database';
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js'; // Import SupabaseUser & Session type
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
-type User = any; // Supabase User type
 
 interface AuthContextType {
-  user: User | null;
+  user: SupabaseUser | null;
   profile: Profile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<any>;
-  signUp: (email: string, password: string, fullName: string) => Promise<any>;
-  signOut: () => Promise<any>;
-  updateProfile: (updates: Partial<Profile>) => Promise<any>;
+  signIn: (_email: string, _password: string) => Promise<{ data: { user: SupabaseUser | null; session: Session | null; } | null; error: Error | null; }>;
+  signUp: (_email: string, _password: string, _fullName: string) => Promise<{ data: { user: SupabaseUser | null; session: Session | null; } | null; error: Error | null; }>;
+  signOut: () => Promise<{ error: Error | null; }>;
+  updateProfile: (_updates: Partial<Profile>) => Promise<{ data: Profile | null; error: Error | null; }>;
   isAdmin: boolean;
   isSubscriber: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+function AuthProviderComponent({ children }: { children: ReactNode }) { // Renamed for clarity
   const auth = useAuth();
 
   return (
@@ -29,10 +29,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useAuthContext() {
+export const useAuthContext = () => { // Keep as named export
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuthContext must be used within an AuthProvider');
   }
   return context;
-}
+};
+
+export default AuthProviderComponent; // Default export for the component

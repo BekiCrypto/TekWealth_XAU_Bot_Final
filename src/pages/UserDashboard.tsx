@@ -73,8 +73,9 @@ export function UserDashboard() {
       // Assuming positionsRes.data is an array of OpenPosition
       setOpenPositions(positionsRes.data?.positions || positionsRes.data || []);
 
-    } catch (err: any) {
-      setError(err.message || 'An unknown error occurred.');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'An unknown error occurred.');
       setAccountSummary(null); // Clear data on error
       setOpenPositions([]);
     } finally {

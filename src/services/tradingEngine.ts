@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/database';
 import { notificationService } from './notificationService';
+import type { StrategyParams } from './tradingService'; // Import StrategyParams
 
 type TradingAccount = Database['public']['Tables']['trading_accounts']['Row'];
 type Trade = Database['public']['Tables']['trades']['Row'];
@@ -225,7 +226,13 @@ export class TradingEngine {
     return signal;
   }
 
-  private analyzeSignals(riskLevel: string, indicators: any): TradingSignal {
+  private analyzeSignals(riskLevel: string, indicators: {
+    currentPrice: number;
+    sma5: number | null;
+    sma10: number | null;
+    rsi: number | null;
+    spread: number;
+  }): TradingSignal {
     const { currentPrice, sma5, sma10, rsi, spread } = indicators;
     
     // Conservative strategy
@@ -608,7 +615,7 @@ export class TradingEngine {
     userId: string;
     tradingAccountId: string;
     riskLevel: 'conservative' | 'medium' | 'risky';
-    settings: any;
+    settings: Partial<StrategyParams>; // Using Partial<StrategyParams>
   }) {
     const { data: session, error } = await supabase
       .from('bot_sessions')

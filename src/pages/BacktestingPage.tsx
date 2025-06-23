@@ -36,7 +36,7 @@ interface BacktestReport {
   created_at: string;
   strategy_selection_mode?: string; // Added
   strategy_params?: StrategyParams;  // Added
-  risk_settings?: any;               // Added
+  risk_settings?: UIPerBacktestParams['riskSettings']; // Typed risk_settings
   trades?: Array<{ // Define structure for individual trades in the report
     entryTime: string;
     entryPrice: number;
@@ -90,7 +90,10 @@ const BacktestingPage: React.FC = () => {
       const response = await tradingService.listBacktests(userId);
       if (response.error) throw response.error;
       setPastReports(response.data || []);
-    } catch (err: any) { setError(err.message || 'Failed to load past reports'); }
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to load past reports');
+    }
     finally { setLoading(false); }
   };
 
@@ -112,8 +115,9 @@ const BacktestingPage: React.FC = () => {
         } else {
             toast.info(message); // Use info for neutral messages
         }
-    } catch (err:any) {
-        const errorMessage = err.message || 'Failed to fetch historical data';
+    } catch (err) {
+        const error = err as Error;
+        const errorMessage = error.message || 'Failed to fetch historical data';
         setError(errorMessage);
         toast.error(`Error fetching historical data: ${errorMessage}`);
     }
@@ -147,7 +151,10 @@ const BacktestingPage: React.FC = () => {
       if (response.error) throw response.error;
       setCurrentReport(response.data as BacktestReport); // Cast to ensure type
       if (user?.id) loadPastReports(user.id);
-    } catch (err: any) { setError(err.message || 'Failed to run backtest'); }
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to run backtest');
+    }
     finally { setLoading(false); }
   };
 
@@ -157,7 +164,10 @@ const BacktestingPage: React.FC = () => {
       const response = await tradingService.getBacktestReport(reportId);
       if (response.error) throw response.error;
       setCurrentReport(response.data as BacktestReport);
-    } catch (err: any) { setError(err.message || 'Failed to load report details'); }
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to load report details');
+    }
     finally { setLoading(false); }
   };
 
@@ -167,7 +177,7 @@ const BacktestingPage: React.FC = () => {
     const parsedValue = type === 'number' ? (value === '' ? undefined : parseFloat(value)) : value;
 
     setParams(prev => {
-        const newParams = JSON.parse(JSON.stringify(prev)); // Deep copy for nested state
+        const newParams = JSON.parse(JSON.stringify(prev)) as UIPerBacktestParams; // Assert type
 
         if (name === 'strategySelectionMode') {
             newParams.strategySelectionMode = parsedValue as UIPerBacktestParams['strategySelectionMode'];
@@ -176,9 +186,14 @@ const BacktestingPage: React.FC = () => {
         } else if (name === 'maxLotSize') {
             newParams.riskSettings.maxLotSize = parsedValue as number | undefined;
         } else if (Object.keys(newParams.strategyParams).includes(name)) {
-            (newParams.strategyParams as any)[name] = parsedValue;
-        } else { // Top-level params like symbol, timeframe, startDate, endDate
-            (newParams as any)[name] = parsedValue;
+            // Ensure name is a valid key of strategyParams before assigning
+            (newParams.strategyParams as Record<string, string | number | boolean | undefined>)[name] = parsedValue;
+        } else if (name in newParams && name !== 'strategyParams' && name !== 'riskSettings') {
+            // For top-level params like symbol, timeframe, startDate, endDate, commissionPerLot, slippagePoints
+             type TopLevelKey = keyof Omit<UIPerBacktestParams, 'strategyParams' | 'riskSettings'>;
+            (newParams as Record<string, any>)[name as TopLevelKey] = parsedValue;
+        } else {
+            console.warn(`Unhandled param change for name: ${name}`);
         }
         return newParams;
     });
@@ -349,22 +364,25 @@ const BacktestingPage: React.FC = () => {
       <div style={{ marginTop: '3rem' }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 'semibold', marginBottom: '1rem', borderBottom: '1px solid #4A5568', paddingBottom: '0.5rem' }}>Past Backtest Reports</h2>
         {pastReports.length === 0 && <p>No past reports found.</p>}
-        <ul style={{listStyle: 'none', padding: 0}}>
+        <div className="space-y-2"> {/* Use div for spacing buttons */}
           {pastReports.map(report => (
-            <li
+            <button
+              type="button" // Good practice for buttons not submitting forms
               key={report.id}
-              style={{ background: '#2D3748', border: '1px solid #4A5568', padding: '15px', marginBottom: '10px', borderRadius: '8px', cursor: 'pointer', transition: 'background-color 0.2s ease'}}
+              style={{ background: '#2D3748', border: '1px solid #4A5568', padding: '15px', marginBottom: '10px', borderRadius: '8px', cursor: 'pointer', transition: 'background-color 0.2s ease', width: '100%', textAlign: 'left' }}
               onClick={() => handleViewReport(report.id)}
+              // onKeyDown is inherent for buttons (Enter/Space)
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4A5568'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2D3748'}
+              className="block w-full text-left hover:bg-gray-700" // Added Tailwind classes for consistency if needed
             >
               ID: <span className="text-yellow-400">{report.id.substring(0,8)}...</span> ({new Date(report.created_at).toLocaleDateString()}) <br/>
               {report.symbol} ({report.timeframe}) | Strategy: {report.strategy_selection_mode || "N/A"} <br />
               P/L: <span className={ (report.total_profit_loss ?? 0) >= 0 ? "text-green-400" : "text-red-400"}>${report.total_profit_loss?.toFixed(2)}</span> |
               Win Rate: {report.win_rate?.toFixed(2)}% ({report.winning_trades}/{report.total_trades})
-            </li>
+            </button>
           ))}
-        </ul>
+        </div>
       </div>
     </div>
   );

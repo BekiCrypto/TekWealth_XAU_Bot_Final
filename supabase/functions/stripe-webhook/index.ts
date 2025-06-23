@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2' // Import SupabaseClient
+import type { Stripe } from "https://esm.sh/stripe@^15"; // Import Stripe types
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,7 +18,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const signature = req.headers.get('stripe-signature')
+    const _signature = req.headers.get('stripe-signature') // Prefixed
     const body = await req.text()
     
     // Verify webhook signature
@@ -59,7 +60,7 @@ serve(async (req) => {
   }
 })
 
-async function handlePaymentSuccess(supabase: any, paymentIntent: any) {
+async function handlePaymentSuccess(supabase: SupabaseClient, paymentIntent: Stripe.PaymentIntent) {
   // Update payment status
   const { error } = await supabase
     .from('payments')
@@ -75,7 +76,7 @@ async function handlePaymentSuccess(supabase: any, paymentIntent: any) {
   }
 }
 
-async function handleSubscriptionPayment(supabase: any, invoice: any) {
+async function handleSubscriptionPayment(supabase: SupabaseClient, invoice: Stripe.Invoice) {
   // Update subscription status
   const { error } = await supabase
     .from('subscriptions')
@@ -90,7 +91,7 @@ async function handleSubscriptionPayment(supabase: any, invoice: any) {
   }
 }
 
-async function handleSubscriptionCancellation(supabase: any, subscription: any) {
+async function handleSubscriptionCancellation(supabase: SupabaseClient, subscription: Stripe.Subscription) {
   // Update subscription status
   const { error } = await supabase
     .from('subscriptions')

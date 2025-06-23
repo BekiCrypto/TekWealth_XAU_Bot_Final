@@ -2,8 +2,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/database';
 
-type Subscription = Database['public']['Tables']['subscriptions']['Row'];
-type Payment = Database['public']['Tables']['payments']['Row'];
+type _Subscription = Database['public']['Tables']['subscriptions']['Row']; // Prefixed
+type _Payment = Database['public']['Tables']['payments']['Row']; // Prefixed
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -113,7 +113,7 @@ export class PaymentService {
     paymentProvider: string;
     providerPaymentId?: string;
     status: 'pending' | 'completed' | 'failed';
-    metadata?: any;
+    metadata?: Record<string, unknown>; // Changed from any
   }) {
     const { data, error } = await supabase
       .from('payments')
@@ -193,7 +193,7 @@ export class PaymentService {
       .from('subscriptions')
       .insert({
         user_id: userId,
-        plan_type: planType as any,
+        plan_type: planType, // Removed 'as any'
         price_paid: price,
         payment_method: 'stripe',
         status: 'pending'
@@ -223,7 +223,7 @@ export class PaymentService {
       .from('subscriptions')
       .insert({
         user_id: userId,
-        plan_type: planType as any,
+        plan_type: planType, // Removed 'as any'
         price_paid: price,
         payment_method: 'crypto',
         status: 'pending'

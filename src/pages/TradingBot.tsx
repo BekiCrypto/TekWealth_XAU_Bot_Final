@@ -57,7 +57,13 @@ export function TradingBot() {
     },
   });
 
-  const [liveBotStats, setLiveBotStats] = useState<any>({ tradesToday: 0, successRate: '0%', profitToday: '$0.00', openPositions: 0 });
+  interface LiveBotStats {
+    tradesToday: number;
+    successRate: string; // Or number if it's a percentage value
+    profitToday: string; // Or number
+    openPositions: number;
+  }
+  const [liveBotStats, setLiveBotStats] = useState<LiveBotStats>({ tradesToday: 0, successRate: '0%', profitToday: '$0.00', openPositions: 0 });
   const [recentLiveTrades, setRecentLiveTrades] = useState<DisplayTrade[]>([]);
 
 
@@ -69,10 +75,10 @@ export function TradingBot() {
       const [sessionsRes, accountsRes, tradesRes, openPositionsRes] = await Promise.all([
         tradingService.getActiveUserBotSessions(user.id),
         tradingService.getTradingAccounts(user.id),
-        tradingService.getUserTrades(user.id, 10), // Fetch recent 10 trades for activity
-        // Assuming first trading account if multiple, or needs selection for stats
-        // For now, just an example, ideally this is tied to a selected account or all accounts
-        tradingAccounts.length > 0 ? tradingService.listProviderOpenPositions(tradingAccounts[0].id) : Promise.resolve({data: [], error: null}),
+        tradingService.getUserTrades(user.id, 10),
+        // Assuming ProviderOpenPosition is imported or defined if not already
+        // For now, using a more general but still better than any[] approach if ProviderOpenPosition isn't directly available here
+        tradingAccounts.length > 0 ? tradingService.listProviderOpenPositions(tradingAccounts[0].id) : Promise.resolve({data: [] as Array<Record<string, unknown>>, error: null}),
       ]);
 
       if (sessionsRes.error) throw new Error(`Failed to fetch bot sessions: ${sessionsRes.error.message}`);
@@ -87,7 +93,22 @@ export function TradingBot() {
 
       if (tradesRes.error) console.error("Error fetching recent trades:", tradesRes.error);
       else {
-        const displayTrades: DisplayTrade[] = (tradesRes.data || []).map((t: any) => ({
+        // Assuming tradesRes.data is an array of objects with properties matching DisplayTrade needs
+        // If tradingService.getUserTrades is typed, this 'as any' can be removed or made more specific.
+        const tradesData = tradesRes.data as Array<{
+            id: string;
+            open_time?: string; // Assuming these are the raw field names
+            created_at: string;
+            trade_type: string;
+            symbol: string;
+            lot_size: number;
+            open_price: number;
+            profit_loss?: number | null;
+            status?: string;
+            entryTime?: string; // This seems redundant if open_time or created_at is used
+        }> || [];
+
+        const displayTrades: DisplayTrade[] = tradesData.map((t) => ({
             id: t.id,
             time: new Date(t.open_time || t.created_at).toLocaleTimeString(),
             action: t.trade_type,
@@ -110,8 +131,9 @@ export function TradingBot() {
         setLiveBotStats(prev => ({...prev, openPositions: (openPositionsRes.data || []).length }));
       }
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -157,8 +179,9 @@ export function TradingBot() {
       setShowConfigModal(false);
       fetchUserTradingData();
       toast.success("Bot session started successfully!");
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to start bot session.";
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || "Failed to start bot session.";
       setError(errorMessage);
       toast.error(`Error starting bot: ${errorMessage}`);
     } finally {
@@ -173,8 +196,9 @@ export function TradingBot() {
       if (response.error) throw response.error;
       fetchUserTradingData();
       toast.success("Bot session stopped successfully!");
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to stop bot session.";
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || "Failed to stop bot session.";
       setError(errorMessage);
       toast.error(`Error stopping bot: ${errorMessage}`);
     } finally {
@@ -192,12 +216,16 @@ export function TradingBot() {
     }
 
     setNewSessionConfig(prev => {
-        const newConfig = JSON.parse(JSON.stringify(prev));
+        const newConfig = JSON.parse(JSON.stringify(prev)) as NewSessionConfig; // Assert type after deep copy
 
         if (name === 'tradingAccountId' || name === 'riskLevel' || name === 'strategySelectionMode') {
-            (newConfig as any)[name] = parsedValue;
-        } else { // Assumes all other fields are direct children of strategyParams
-            (newConfig.strategyParams as any)[name] = parsedValue;
+            // These are known keys of NewSessionConfig
+            newConfig[name as keyof Pick<NewSessionConfig, 'tradingAccountId' | 'riskLevel' | 'strategySelectionMode'>] = parsedValue as never;
+        } else if (Object.keys(newConfig.strategyParams).includes(name)) {
+            // Ensure name is a valid key of strategyParams before assigning
+            (newConfig.strategyParams as Record<string, string | number | undefined>)[name] = parsedValue;
+        } else {
+            console.warn(`Unhandled config change for name: ${name}`);
         }
         return newConfig;
     });

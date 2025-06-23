@@ -21,7 +21,7 @@ interface SystemLog {
   log_level: 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL';
   context: string;
   message: string;
-  details?: any;
+  details?: Record<string, unknown>; // Changed from any
   session_id?: string;
   user_id?: string;
 }
@@ -52,60 +52,82 @@ export function AdminDashboard() {
   const [errorUsers, setErrorUsers] = useState<string | null>(null);
   const [errorLogs, setErrorLogs] = useState<string | null>(null);
 
+  const fetchEnvData = React.useCallback(async () => {
+    setIsLoadingEnv(true);
+    setErrorEnv(null);
+    try {
+      const { data, error } = await tradingService.adminGetEnvVariablesStatus();
+      if (error) throw error;
+      if (data) {
+        setEnvVarStatuses(data);
+      } else {
+        setEnvVarStatuses([]);
+      }
+    } catch (err) {
+      const error = err as Error;
+      console.error("AdminDashboard fetchEnvData error:", error);
+      setErrorEnv(error.message || 'Failed to fetch ENV variable statuses.');
+      setEnvVarStatuses([]);
+    } finally {
+      setIsLoadingEnv(false);
+    }
+  }, []); // Empty dependency array as it only uses setters and services
+
+  const fetchUsersData = React.useCallback(async () => {
+    setIsLoadingUsers(true);
+    setErrorUsers(null);
+    try {
+      const { data, error } = await tradingService.adminListUsersOverview();
+      if (error) throw error;
+      if (data) {
+        setUsers(data);
+      } else {
+        setUsers([]);
+      }
+    } catch (err) {
+      const error = err as Error;
+      console.error("AdminDashboard fetchUsersData error:", error);
+      setErrorUsers(error.message || 'Failed to fetch users overview.');
+      setUsers([]);
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  }, []); // Empty dependency array
+
+  const fetchSystemLogs = React.useCallback(async () => {
+    if (userRole !== 'admin') return;
+    setIsLoadingLogs(true);
+    setErrorLogs(null);
+    try {
+      const { data, error } = await tradingService.adminGetSystemLogs(logFilters);
+      if (error) throw error;
+      if (data && data.logs) {
+        setSystemLogs(data.logs);
+        setTotalLogs(data.count || 0);
+      } else {
+        setSystemLogs([]);
+        setTotalLogs(0);
+      }
+    } catch (err) {
+      const error = err as Error;
+      console.error("AdminDashboard fetchSystemLogs error:", error);
+      setErrorLogs(error.message || 'Failed to fetch system logs.');
+      setSystemLogs([]);
+      setTotalLogs(0);
+    } finally {
+      setIsLoadingLogs(false);
+    }
+  }, [userRole, logFilters]);
 
   useEffect(() => {
-    // Basic frontend check, actual authorization happens on the backend via JWT
     if (userRole !== 'admin') {
-      // Redirect or show unauthorized message if not admin
-      // For now, just log and don't fetch data
       console.warn("User is not admin, Admin Dashboard access denied on frontend.");
-      // Set empty states or specific error messages if preferred for UI
       setEnvVarStatuses([]);
       setUsers([]);
       setErrorEnv("Access Denied: You must be an administrator to view this page.");
       setErrorUsers("Access Denied: You must be an administrator to view this page.");
       return;
     }
-
-    const fetchEnvData = React.useCallback(async () => {
-      setIsLoadingEnv(true);
-      setErrorEnv(null);
-      try {
-        const { data, error } = await tradingService.adminGetEnvVariablesStatus();
-        if (error) throw error;
-        if (data) {
-          setEnvVarStatuses(data);
-        } else {
-          setEnvVarStatuses([]);
-        }
-      } catch (err: any) {
-        console.error("AdminDashboard fetchEnvData error:", err);
-        setErrorEnv(err.message || 'Failed to fetch ENV variable statuses.');
-        setEnvVarStatuses([]);
-      } finally {
-        setIsLoadingEnv(false);
-      }
-    }, []); // No external dependencies other than static setters and service
-
-    const fetchUsersData = React.useCallback(async () => {
-      setIsLoadingUsers(true);
-      setErrorUsers(null);
-      try {
-        const { data, error } = await tradingService.adminListUsersOverview();
-        if (error) throw error;
-        if (data) {
-          setUsers(data);
-        } else {
-          setUsers([]);
-        }
-      } catch (err: any) {
-        console.error("AdminDashboard fetchUsersData error:", err);
-        setErrorUsers(err.message || 'Failed to fetch users overview.');
-        setUsers([]);
-      } finally {
-        setIsLoadingUsers(false);
-      }
-    }, []); // No external dependencies other than static setters and service
 
     if(user && userRole === 'admin') {
         fetchEnvData();
@@ -128,9 +150,10 @@ export function AdminDashboard() {
         setSystemLogs([]);
         setTotalLogs(0);
       }
-    } catch (err: any) {
-      console.error("AdminDashboard fetchSystemLogs error:", err);
-      setErrorLogs(err.message || 'Failed to fetch system logs.');
+    } catch (err) {
+      const error = err as Error;
+      console.error("AdminDashboard fetchSystemLogs error:", error);
+      setErrorLogs(error.message || 'Failed to fetch system logs.');
       setSystemLogs([]);
       setTotalLogs(0);
     } finally {

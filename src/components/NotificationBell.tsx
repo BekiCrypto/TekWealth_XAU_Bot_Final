@@ -26,9 +26,10 @@ export function NotificationBell() {
         setNotifications(data);
         setUnreadCount(data.filter(n => !n.is_read).length);
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch notifications');
-      console.error("Notification fetch error:", err);
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to fetch notifications');
+      console.error("Notification fetch error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -53,9 +54,10 @@ export function NotificationBell() {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
       // toast.success("Notification marked as read."); // Optional: can be a bit noisy for individual marks
-    } catch (err: any) {
-      console.error("Mark as read error:", err);
-      toast.error(err.message || "Failed to mark notification as read.");
+    } catch (err) {
+      const error = err as Error;
+      console.error("Mark as read error:", error);
+      toast.error(error.message || "Failed to mark notification as read.");
     }
   };
 
@@ -68,9 +70,12 @@ export function NotificationBell() {
         unreadNotifications.map(n => tradingService.markNotificationAsRead(n.id))
     );
 
-    toast.promise(promise, {
+    // Define the expected shape of the result from markNotificationAsRead
+    type MarkReadResult = { error?: Error | { message: string } | null };
+
+    toast.promise(promise as Promise<MarkReadResult[]>, {
         loading: 'Marking all as read...',
-        success: (results) => {
+        success: (results: MarkReadResult[]) => {
             // Check if any individual request failed
             const allSuccessful = results.every(res => !res.error);
             if (allSuccessful) {

@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase';
 import { Database } from '../types/database';
 
 // Re-export or define relevant types
-type TradingAccount = Database['public']['Tables']['trading_accounts']['Row'];
+type _TradingAccount = Database['public']['Tables']['trading_accounts']['Row']; // Prefixed
 type Trade = Database['public']['Tables']['trades']['Row'];
 export type BotSession = Database['public']['Tables']['bot_sessions']['Row'] & {
   strategy_params?: StrategyParams; // Already a JSONB in DB, so can be typed here
@@ -48,11 +48,50 @@ export interface CloseOrderProviderParams {
   // Add other params if your ITradeExecutionProvider->closeOrder expects more
 }
 
+// Types for provider actions data part of the response
+interface ProviderAccountSummary {
+  balance?: number;
+  equity?: number;
+  profit?: number;
+  currency?: string;
+  margin?: number;
+  freeMargin?: number;
+  error?: string;
+}
+
+interface ProviderOpenPosition {
+  ticket: string;
+  symbol: string;
+  type: 'BUY' | 'SELL';
+  lots: number;
+  openPrice: number;
+  openTime: string;
+  stopLoss?: number;
+  takeProfit?: number;
+  currentPrice?: number;
+  profit?: number;
+  swap?: number;
+  comment?: string;
+}
+
+interface ProviderCloseOrderResult {
+  success: boolean;
+  ticketId: string;
+  closePrice?: number;
+  profit?: number;
+  error?: string;
+}
+
+interface ProviderServerTime {
+  time: string;
+  error?: string;
+}
+
 
 export class TradingService {
   private static instance: TradingService;
   private priceCallbacks: ((price: number) => void)[] = [];
-  private priceUpdateInterval: any | null = null;
+  private priceUpdateInterval: number | null = null; // For browser setInterval ID
 
   static getInstance(): TradingService {
     if (!TradingService.instance) {
@@ -103,7 +142,8 @@ export class TradingService {
       }
 
       return { data, error: null };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Error adding/updating trading account:', error);
       return { data: null, error };
     }
@@ -117,20 +157,35 @@ export class TradingService {
     password?: string; // Plain text password if updating
     isActive?: boolean;
   }) {
-     const payload: any = {
+    interface UpsertPayloadData {
+        userId: string;
+        accountId: string;
+        platform?: 'MT4' | 'MT5';
+        serverName?: string;
+        loginId?: string;
+        isActive?: boolean;
+        passwordPlainText?: string;
+    }
+    interface UpsertPayload {
+        action: string;
+        data: UpsertPayloadData;
+    }
+
+    const payloadData: UpsertPayloadData = {
+        userId,
+        accountId,
+        platform: updateData.platform,
+        serverName: updateData.serverName,
+        loginId: updateData.loginId,
+        isActive: updateData.isActive,
+    };
+    if (updateData.password) {
+        payloadData.passwordPlainText = updateData.password;
+    }
+    const payload: UpsertPayload = {
         action: 'upsert_trading_account_action',
-        data: {
-            userId,
-            accountId,
-            platform: updateData.platform,
-            serverName: updateData.serverName,
-            loginId: updateData.loginId,
-            isActive: updateData.isActive,
-        }
-     };
-     if (updateData.password) {
-         payload.data.passwordPlainText = updateData.password;
-     }
+        data: payloadData
+    };
 
     try {
       const { data, error } = await supabase.functions.invoke('trading-engine', payload);
@@ -138,7 +193,8 @@ export class TradingService {
       if (data && data.error) throw new Error(data.error);
       if (!data) throw new Error("No data returned from update_trading_account_action");
       return { data, error: null };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error(`Error updating trading account ${accountId}:`, error);
       return { data: null, error };
     }
@@ -175,7 +231,8 @@ export class TradingService {
       if (error) throw error;
       console.log('Bot session started:', data);
       return { data, error: null };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Error starting bot session:', error);
       return { data: null, error };
     }
@@ -191,13 +248,14 @@ export class TradingService {
         .single();
       if (error) throw error;
       return { data, error: null };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Error stopping bot session:', error);
       return { data: null, error };
     }
   }
 
-  async getActiveUserBotSessions(userId: string): Promise<{ data: BotSession[] | null; error: any }> {
+  async getActiveUserBotSessions(userId: string): Promise<{ data: BotSession[] | null; error: Error | null }> {
     try {
       const { data, error } = await supabase
         .from('bot_sessions')
@@ -207,60 +265,68 @@ export class TradingService {
         .order('session_start', { ascending: false });
       if (error) throw error;
       return { data, error: null };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Error fetching active bot sessions:', error);
       return { data: null, error };
     }
   }
 
   // --- Provider-based Actions (from trading-engine) ---
-  async getProviderAccountSummary(tradingAccountId?: string) {
+  async getProviderAccountSummary(tradingAccountId?: string): Promise<{ data: ProviderAccountSummary | null; error: Error | null }> {
     try {
       const { data, error } = await supabase.functions.invoke('trading-engine', {
         body: { action: 'provider_get_account_summary', data: { tradingAccountId } },
       });
       if (error) throw error;
-      return { data, error: null };
-    } catch (error: any) {
+      // Assuming the 'data' from invoke directly matches ProviderAccountSummary or contains it.
+      // If 'data' is { summary: ProviderAccountSummary }, then access data.summary
+      return { data: data as ProviderAccountSummary || null, error: null };
+    } catch (err) {
+      const error = err as Error;
       console.error('Error fetching account summary via provider:', error);
       return { data: null, error };
     }
   }
 
-  async listProviderOpenPositions(tradingAccountId?: string) {
+  async listProviderOpenPositions(tradingAccountId?: string): Promise<{ data: ProviderOpenPosition[] | null; error: Error | null }> {
     try {
       const { data, error } = await supabase.functions.invoke('trading-engine', {
         body: { action: 'provider_list_open_positions', data: { tradingAccountId } },
       });
       if (error) throw error;
-      return { data, error: null };
-    } catch (error: any) {
+      // Assuming 'data' from invoke is an array of positions or { positions: ProviderOpenPosition[] }
+      return { data: (data?.positions || data) as ProviderOpenPosition[] || null, error: null };
+    } catch (err) {
+      const error = err as Error;
       console.error('Error listing open positions via provider:', error);
       return { data: null, error };
     }
   }
 
-  async closeTradeOrderProvider(params: CloseOrderProviderParams) {
+  async closeTradeOrderProvider(params: CloseOrderProviderParams): Promise<{ data: ProviderCloseOrderResult | null; error: Error | null }> {
     try {
       const { data, error } = await supabase.functions.invoke('trading-engine', {
         body: { action: 'provider_close_order', data: params },
       });
       if (error) throw error;
-      return { data, error: null };
-    } catch (error: any) {
+      return { data: data as ProviderCloseOrderResult || null, error: null };
+    } catch (err) {
+      const error = err as Error;
       console.error('Error closing order via provider:', error);
       return { data: null, error };
     }
   }
 
-  async fetchProviderServerTime() {
+  async fetchProviderServerTime(): Promise<{ data: ProviderServerTime | null; error: Error | null }> {
     try {
       const { data, error } = await supabase.functions.invoke('trading-engine', {
         body: { action: 'provider_get_server_time', data: {} },
       });
       if (error) throw error;
-      return { data, error: null };
-    } catch (error: any) {
+      return { data: data as ProviderServerTime || null, error: null };
+    } catch (err) {
+      const error = err as Error;
       console.error('Error fetching server time via provider:', error);
       return { data: null, error };
     }
@@ -273,7 +339,7 @@ export class TradingService {
 
 
   // --- Notification Methods ---
-  async getUserNotifications(userId: string, limit = 20): Promise<{ data: Notification[] | null; error: any }> {
+  async getUserNotifications(userId: string, limit = 20): Promise<{ data: Notification[] | null; error: Error | null }> {
     try {
       const { data, error } = await supabase
         .from('notifications')
@@ -283,7 +349,8 @@ export class TradingService {
         .limit(limit);
       if (error) throw error;
       return { data, error: null };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Error fetching user notifications:', error);
       return { data: null, error };
     }
@@ -299,7 +366,8 @@ export class TradingService {
         .single();
       if (error) throw error;
       return { data, error: null };
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error('Error marking notification as read:', error);
       return { data: null, error };
     }
@@ -314,7 +382,10 @@ export class TradingService {
       if (error) { console.error('Error invoking trading-engine for price:', error); throw error; }
       if (data && typeof data.price === 'number') { return data.price; }
       else { console.error('Invalid price data received:', data); return null; }
-    } catch (error: any) { console.error('Error fetching current price:', error); return null; }
+    } catch (err) {
+      const error = err as Error;
+      console.error('Error fetching current price:', error); return null;
+    }
   }
 
   async fetchHistoricalData(params: { // For populating backtest data
@@ -330,7 +401,10 @@ export class TradingService {
       });
       if (error) throw error;
       return { data, error: null };
-    } catch (error: any) { console.error('Error fetching historical data:', error); return { data: null, error };}
+    } catch (err) {
+      const error = err as Error;
+      console.error('Error fetching historical data:', error); return { data: null, error };
+    }
    }
 
   // --- Backtesting Service Methods ---
@@ -355,7 +429,10 @@ export class TradingService {
       });
       if (error) throw error;
       return { data, error: null };
-    } catch (error: any) { console.error('Error running backtest:', error); return { data: null, error };}
+    } catch (err) {
+      const error = err as Error;
+      console.error('Error running backtest:', error); return { data: null, error };
+    }
   }
 
   async getBacktestReport(reportId: string) {
@@ -365,7 +442,10 @@ export class TradingService {
       });
       if (error) throw error;
       return { data, error: null };
-    } catch (error: any) { console.error('Error fetching backtest report:', error); return { data: null, error };}
+    } catch (err) {
+      const error = err as Error;
+      console.error('Error fetching backtest report:', error); return { data: null, error };
+    }
   }
 
   async listBacktests(userId?: string) {
@@ -423,29 +503,31 @@ export class TradingService {
   }
 
   // --- Admin Service Methods ---
-  async adminGetEnvVariablesStatus(): Promise<{ data: Array<{name: string, status: string}> | null; error: any }> {
+  async adminGetEnvVariablesStatus(): Promise<{ data: Array<{name: string, status: string}> | null; error: Error | null }> {
     try {
       const { data, error } = await supabase.functions.invoke('trading-engine', {
         body: { action: 'admin_get_env_variables_status' },
       });
       if (error) throw error;
-      if (data && data.error) throw new Error(data.error); // Handle errors returned in the data payload
-      return { data, error: null };
-    } catch (error: any) {
+      if (data && data.error) throw new Error(data.error as string);
+      return { data: data as Array<{name: string, status: string}> || null, error: null };
+    } catch (err) {
+      const error = err as Error;
       console.error('Error fetching ENV variable statuses:', error);
       return { data: null, error };
     }
   }
 
-  async adminListUsersOverview(): Promise<{ data: Array<{id: string, email?: string, created_at: string, last_sign_in_at?: string}> | null; error: any }> {
+  async adminListUsersOverview(): Promise<{ data: Array<{id: string, email?: string, created_at: string, last_sign_in_at?: string}> | null; error: Error | null }> {
     try {
       const { data, error } = await supabase.functions.invoke('trading-engine', {
         body: { action: 'admin_list_users_overview' },
       });
       if (error) throw error;
-      if (data && data.error) throw new Error(data.error); // Handle errors returned in the data payload
-      return { data, error: null };
-    } catch (error: any) {
+      if (data && data.error) throw new Error(data.error as string);
+      return { data: data as Array<{id: string, email?: string, created_at: string, last_sign_in_at?: string}> || null, error: null };
+    } catch (err) {
+      const error = err as Error;
       console.error('Error listing users overview:', error);
       return { data: null, error };
     }

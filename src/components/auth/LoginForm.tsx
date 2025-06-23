@@ -33,8 +33,9 @@ export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
         toast.success('Welcome back!');
         onSuccess();
       }
-    } catch (e: any) { // Catch any error
-      toast.error(e?.message || 'An unexpected error occurred');
+    } catch (e) {
+      const error = e as Error;
+      toast.error(error.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
