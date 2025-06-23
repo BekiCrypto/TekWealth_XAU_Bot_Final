@@ -15,22 +15,21 @@ export function TradingEngineControl() {
   const [engineStatus, setEngineStatus] = useState({
     running: false,
     activeSessions: 0,
-    lastPriceUpdate: null,
-    marketData: {}
+    lastPriceUpdate: null as Date | null,
+    marketData: {} as Record<string, any>, // Simplified for this component
+    engineStartTime: null as Date | null,
+    logs: [] as Array<{ time: string, level: string, message: string }>
   });
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // Update status every 5 seconds
-    const interval = setInterval(() => {
-      const status = tradingEngine.getEngineStatus();
-      setEngineStatus(status);
-    }, 5000);
-
-    // Initial status check
+  const fetchStatus = () => {
     const status = tradingEngine.getEngineStatus();
     setEngineStatus(status);
+  };
 
+  useEffect(() => {
+    fetchStatus(); // Initial status check
+    const interval = setInterval(fetchStatus, 3000); // Update status every 3 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -42,14 +41,11 @@ export function TradingEngineControl() {
       } else {
         await tradingEngine.startEngine();
       }
-      
-      // Update status immediately
-      setTimeout(() => {
-        const status = tradingEngine.getEngineStatus();
-        setEngineStatus(status);
-      }, 1000);
+      // Update status after a short delay to allow engine to change state
+      setTimeout(fetchStatus, 500);
     } catch (error) {
       console.error('Error toggling engine:', error);
+      // Optionally set an error state to display to the user
     } finally {
       setLoading(false);
     }
